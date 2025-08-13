@@ -4,24 +4,25 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table
+@Table(name = "stocks")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-
 public class Stock {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "product_id" , nullable = false , unique = true)
-    private Product product;
-
-    @Column(name = "current_stock")
+    // Cantidad actual de stock
+    @Column(name = "current_stock", nullable = false)
     private Integer currentStock;
+
+    // Relación 1:1 con Product
+    @OneToOne
+    @JoinColumn(name = "product_id", nullable = false, unique = true)
+    private Product product;
 
 }

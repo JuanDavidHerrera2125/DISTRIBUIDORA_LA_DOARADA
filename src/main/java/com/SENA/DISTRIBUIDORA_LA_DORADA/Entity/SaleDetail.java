@@ -1,5 +1,6 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,12 +21,13 @@ public class SaleDetail {
     private Integer quantity;
 
     @Column(name = "unit_prince")
-    private Double unitPrince;
+    private Double unitPrice;
 
     private Double subtotal;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id" , nullable = false)
+    @JsonIgnore  // ✅ Evita que SaleDetail incluya todo el Sale (¡bucle infinito!)
     private Sale sale;
 
     @ManyToOne(fetch = FetchType.LAZY)

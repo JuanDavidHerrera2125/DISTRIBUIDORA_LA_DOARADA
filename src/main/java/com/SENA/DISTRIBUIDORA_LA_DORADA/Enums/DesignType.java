@@ -1,4 +1,6 @@
-﻿package com.SENA.DISTRIBUIDORA_LA_DORADA.Enums;
+package com.SENA.DISTRIBUIDORA_LA_DORADA.Enums;
 
-public class DesignType {
+public enum DesignType {
+    WUAYU, CANASTA, SENCILLA, EXTRA_GRANDE, FUTBOL, IMAGEN;
 }
+

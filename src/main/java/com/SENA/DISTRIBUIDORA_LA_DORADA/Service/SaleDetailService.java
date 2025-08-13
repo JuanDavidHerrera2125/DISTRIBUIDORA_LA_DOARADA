@@ -40,7 +40,7 @@ public class SaleDetailService implements ISaleDetailService {
         return saleDetailRepository.findById(id)
                 .map(existing -> {
                     existing.setQuantity(saleDetail.getQuantity());
-                    existing.setUnitPrince(saleDetail.getUnitPrince());
+                    existing.setUnitPrice(saleDetail.getUnitPrice());
                     existing.setSubtotal(saleDetail.getSubtotal());
                     existing.setSale(saleDetail.getSale());
                     existing.setProduct(saleDetail.getProduct());
