@@ -1,5 +1,5 @@
-
 package com.SENA.DISTRIBUIDORA_LA_DORADA.Service;
+
 import com.SENA.DISTRIBUIDORA_LA_DORADA.DTO.ProductStockDto;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.DTO.StockDto;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.Product;
@@ -50,7 +50,6 @@ public class StockService implements IStockService {
         Stock existing = stockRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Stock no encontrado con ID: " + id));
 
-        // Actualizar solo el stock actual
         existing.setCurrentStock(stock.getCurrentStock());
         return stockRepository.save(existing);
     }
@@ -91,20 +90,19 @@ public class StockService implements IStockService {
             ProductStockDto dto = map.get(key);
             if (dto == null) {
                 dto = new ProductStockDto();
-                dto.setProductId(product.getId()); // solo para referencia
+                dto.setProductId(product.getId());
                 dto.setName(product.getName());
                 dto.setModel(modelValue);
                 dto.setUnitPrice(product.getUnitPrice() != null ? product.getUnitPrice() : 0.0);
                 dto.setDescription(product.getDescription() != null ? product.getDescription() : "");
-                dto.setTotalStock(0); // Inicializar para acumular
+                dto.setTotalStock(0);
                 map.put(key, dto);
             }
-            // Acumular en totalStock
+
             Integer current = stock.getCurrentStock() != null ? stock.getCurrentStock() : 0;
             dto.setTotalStock(dto.getTotalStock() + current);
         }
 
-        // currentStock será igual a totalStock (porque es el total agrupado)
         map.values().forEach(dto -> dto.setCurrentStock(dto.getTotalStock()));
 
         return new ArrayList<>(map.values());
@@ -123,12 +121,8 @@ public class StockService implements IStockService {
     @Transactional
     @Override
     public void saveOrUpdateStock(Product product, int stockToAdd) {
-        if (product == null) {
-            throw new IllegalArgumentException("El producto no puede ser nulo");
-        }
-        if (stockToAdd < 0) {
-            throw new IllegalArgumentException("La cantidad a agregar no puede ser negativa");
-        }
+        if (product == null) throw new IllegalArgumentException("El producto no puede ser nulo");
+        if (stockToAdd < 0) throw new IllegalArgumentException("La cantidad a agregar no puede ser negativa");
 
         stockRepository.findByProduct_Id(product.getId())
                 .ifPresentOrElse(
@@ -144,6 +138,7 @@ public class StockService implements IStockService {
                         }
                 );
     }
+
 
     @Transactional
     @Override

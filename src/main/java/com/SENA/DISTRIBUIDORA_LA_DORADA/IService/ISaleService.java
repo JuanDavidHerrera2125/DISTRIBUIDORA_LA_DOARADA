@@ -9,12 +9,14 @@ public interface ISaleService {
 
     List<Sale> findAll();
 
-    Optional<Sale> findById (Long id);
+    Optional<Sale> findById(Long id);
 
-    Sale save (Sale sale);
+    Sale save(Sale sale);
 
-    void delete (Long id);
-
+    void delete(Long id);
 
     Sale updateSale(Long id, Sale sale);
+
+    // 🔹 Nuevo método agregado en la interfaz
+    Optional<Sale> findByIdWithDetails(Long id);
 }

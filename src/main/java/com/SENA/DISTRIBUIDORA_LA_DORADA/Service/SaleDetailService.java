@@ -1,8 +1,10 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.Service;
 
+import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.Sale;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.SaleDetail;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.IService.ISaleDetailService;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Repository.SaleDetailRepository;
+import com.SENA.DISTRIBUIDORA_LA_DORADA.Repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,10 @@ public class SaleDetailService implements ISaleDetailService {
 
     @Autowired
     private SaleDetailRepository saleDetailRepository;
+
+    @Autowired
+    private SaleRepository saleRepository;
+
 
     @Override
     public List<SaleDetail> findAll() {
@@ -48,4 +54,12 @@ public class SaleDetailService implements ISaleDetailService {
                 })
                 .orElseThrow(() -> new RuntimeException("SaleDetail no encontrado con ID: " + id));
     }
+
+    @Override
+    public Optional<Sale> findByIdWithDetails(Long id) {
+        // Llama al repositorio que obtiene la venta junto con sus detalles
+        return saleRepository.findSaleWithDetails(id);
+    }
+
+
 }

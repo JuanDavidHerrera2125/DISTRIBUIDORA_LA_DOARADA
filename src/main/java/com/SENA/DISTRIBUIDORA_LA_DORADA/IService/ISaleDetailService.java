@@ -1,5 +1,6 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.IService;
 
+import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.Sale;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.SaleDetail;
 
 import java.util.List;
@@ -16,4 +17,6 @@ public interface ISaleDetailService {
     void delete(Long id);
 
     SaleDetail update(Long id, SaleDetail saleDetail);
+
+    Optional<Sale> findByIdWithDetails(Long id);
 }

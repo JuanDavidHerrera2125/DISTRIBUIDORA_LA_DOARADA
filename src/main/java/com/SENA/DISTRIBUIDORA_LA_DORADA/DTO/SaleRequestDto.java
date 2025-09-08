@@ -10,7 +10,11 @@ public class SaleRequestDto {
     private String clientAddress;
 
     // Datos del producto (sin ID, pero con nombre y modelo)
-    private String productName;  // Ej: "Silla Mesedora - Wuayú"
+    private String productName;   // Ej: "Silla Mesedora"
+    private String productModel;  // Ej: "Wuayú"
     private Integer quantity;
     private Double unitPrice;
+
+    // Opcional: si quieres permitir usar directamente el ID del producto
+    private Long productId;
 }

@@ -2,6 +2,7 @@ package com.SENA.DISTRIBUIDORA_LA_DORADA.Controller;
 
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.Client;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.IService.IClientService;
+import com.SENA.DISTRIBUIDORA_LA_DORADA.Repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,9 @@ public class ClientController {
 
     @Autowired
     private IClientService clientService;
+
+    @Autowired
+    private ClientRepository clientRepository;
 
     // Obtener todos los clientes
     @GetMapping("all")
@@ -55,4 +59,10 @@ public class ClientController {
         clientService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public List<Client> searchClients(@RequestParam String query) {
+        return clientRepository.findByNameContainingIgnoreCaseOrPhoneContaining(query, query);
+    }
+
 }

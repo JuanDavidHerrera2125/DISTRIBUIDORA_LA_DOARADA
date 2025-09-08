@@ -16,11 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -50,9 +46,9 @@ public class SaleController {
 
     @GetMapping
     public List<SaleResponseDto> all() {
-        return service.findAll()  // List<Sale>
+        return service.findAll()
                 .stream()
-                .map(this::convertToResponseDto)  // Convertir cada Sale a SaleResponseDto
+                .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -84,11 +80,10 @@ public class SaleController {
 
     @PostMapping("/create")
     public ResponseEntity<SaleResponseDto> createSale(@RequestBody SaleRequestDto request) {
-        System.out.println("Recibido request: " + request);
-        // 1. Buscar o crear cliente
+        // 1️⃣ Buscar o crear cliente
         Client client = clientService.findByPhoneOrSave(request.getClientPhone(), request);
 
-        // 2. Procesar el nombre del producto
+        // 2️⃣ Procesar nombre y modelo del producto
         String productName = request.getProductName();
         String name;
         String model;
@@ -98,16 +93,15 @@ public class SaleController {
             name = parts[0].trim();
             model = parts[1].trim();
         } else {
-            // Si no tiene formato, usar el nombre completo como nombre y generar modelo básico
             name = productName.trim();
-            model = "GEN-" + System.currentTimeMillis(); // Modelo generado automáticamente
+            model = "GEN-" + System.currentTimeMillis();
         }
 
-        // 3. Buscar producto por nombre y modelo
+        // 3️⃣ Buscar producto
         Product product = productService.findByNameAndModel(name, model)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + request.getProductName()));
 
-        // 4. Validar stock
+        // 4️⃣ Validar stock
         Stock stock = stockService.findByProduct(product)
                 .orElseThrow(() -> new RuntimeException("Stock no encontrado para el producto"));
 
@@ -116,15 +110,15 @@ public class SaleController {
                     ". Disponible: " + stock.getCurrentStock());
         }
 
-        // 5. Crear venta
+        // 5️⃣ Crear venta
         Sale sale = new Sale();
         sale.setClient(client);
-        sale.setDate(new Date()); // java.util.Date
+        sale.setDate(new Date());
         sale.setTotal(request.getQuantity() * request.getUnitPrice());
 
         sale = saleService.save(sale);
 
-        // 6. Crear detalle
+        // 6️⃣ Crear detalle
         SaleDetail detail = SaleDetail.builder()
                 .sale(sale)
                 .product(product)
@@ -133,22 +127,19 @@ public class SaleController {
                 .subtotal(request.getQuantity() * request.getUnitPrice())
                 .build();
 
-        // Guardar el detalle
         saleDetailService.save(detail);
 
-        // 7. Actualizar stock
+        // 7️⃣ Actualizar stock
         stock.setCurrentStock(stock.getCurrentStock() - request.getQuantity());
         stockService.save(stock);
 
-        // 8. Convertir a DTO y devolver
+        // 8️⃣ Convertir a DTO y devolver
         SaleResponseDto responseDto = convertToResponseDto(sale);
 
         return ResponseEntity.ok(responseDto);
     }
 
-    // Método para convertir entidad Sale a DTO con detalles convertidos correctamente
     private SaleResponseDto convertToResponseDto(Sale sale) {
-        // ✅ Manejo seguro de null para evitar NullPointerException
         List<SaleDetailDto> detailsDto = (sale.getDetails() != null) ?
                 sale.getDetails().stream()
                         .map(detail -> {
@@ -172,14 +163,10 @@ public class SaleController {
                 .toLocalDateTime());
         response.setTotal(sale.getTotal());
         response.setDetails(detailsDto);
-
-        // Opcional: estado de la venta, si existe en entidad Sale
         response.setStatus(sale.getStatus());
-
         return response;
     }
 
-    // Cancelar pedido
     @PostMapping("/cancel/{id}")
     public ResponseEntity<String> cancelSale(@PathVariable Long id) {
         Sale sale = saleService.findById(id)
@@ -189,10 +176,9 @@ public class SaleController {
             throw new RuntimeException("La venta ya fue cancelada anteriormente");
         }
 
-        // Devolver stock por cada detalle
+        // ✅ Devolver stock por cada detalle
         for (SaleDetail detail : sale.getDetails()) {
-            Product product = detail.getProduct();
-            stockService.saveOrUpdateStock(product, detail.getQuantity());
+            stockService.saveOrUpdateStock(detail.getProduct(), detail.getQuantity());
         }
 
         // Marcar como cancelada

@@ -63,4 +63,10 @@ public class SaleService implements ISaleService {
             return saleRepository.save(existing);
         }).orElseThrow(() -> new RuntimeException("Venta no encontrada con id: " + id));
     }
+
+    // 🔹 Nuevo método agregado para traer Sale con detalles
+    @Override
+    public Optional<Sale> findByIdWithDetails(Long id) {
+        return saleRepository.findSaleWithDetails(id);
+    }
 }
