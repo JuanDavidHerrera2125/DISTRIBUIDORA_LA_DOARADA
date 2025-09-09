@@ -19,4 +19,6 @@ public interface ISaleService {
 
     // 🔹 Nuevo método agregado en la interfaz
     Optional<Sale> findByIdWithDetails(Long id);
+
+
 }

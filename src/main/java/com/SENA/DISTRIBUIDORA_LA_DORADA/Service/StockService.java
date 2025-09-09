@@ -22,6 +22,7 @@ public class StockService implements IStockService {
     @Autowired
     private ProductRepository productRepository;
 
+
     @Override
     public List<Stock> findAll() {
         return stockRepository.findAll();
@@ -158,4 +159,14 @@ public class StockService implements IStockService {
         stock.setCurrentStock(stock.getCurrentStock() - quantity);
         stockRepository.save(stock);
     }
+
+    // StockService.java
+    public void increaseStock(Long productId, Integer quantity) {
+        Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow(() -> new RuntimeException("Stock no encontrado para el producto: " + productId));
+
+        stock.setCurrentStock(stock.getCurrentStock() + quantity);
+        stockRepository.save(stock); // ✅ Guarda el stock actualizado
+    }
+
 }

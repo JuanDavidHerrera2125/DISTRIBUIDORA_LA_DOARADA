@@ -1,5 +1,6 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,6 +41,10 @@ public class Product {
     @Column(name = "model")
     private String model;
 
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonBackReference
+    private Stock stock;
+
 
     // Relación con los detalles de venta (1 producto puede tener muchos detalles)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -48,6 +53,14 @@ public class Product {
 
     // No declarar Stock aquí para evitar confusión
 
+
+    public Stock getStock() {
+        return stock;
+    }
+
+    public void setStock(Stock stock) {
+        this.stock = stock;
+    }
 
     public Long getId() {
         return id;

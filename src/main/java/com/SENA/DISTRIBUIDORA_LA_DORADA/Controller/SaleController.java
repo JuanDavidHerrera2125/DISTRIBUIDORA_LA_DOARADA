@@ -13,8 +13,11 @@ import com.SENA.DISTRIBUIDORA_LA_DORADA.Service.StockService;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Converter.SaleDtoConverter;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -170,21 +173,24 @@ public class SaleController {
     @PostMapping("/cancel/{id}")
     public ResponseEntity<String> cancelSale(@PathVariable Long id) {
         Sale sale = saleService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venta no encontrada"));
 
         if ("CANCELLED".equalsIgnoreCase(sale.getStatus())) {
-            throw new RuntimeException("La venta ya fue cancelada anteriormente");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La venta ya fue cancelada");
         }
 
         // ✅ Devolver stock por cada detalle
         for (SaleDetail detail : sale.getDetails()) {
-            stockService.saveOrUpdateStock(detail.getProduct(), detail.getQuantity());
+            Product product = detail.getProduct();
+
+            // ✅ Llama directamente a increaseStock en StockService
+            stockService.increaseStock(product.getId(), detail.getQuantity());
         }
 
-        // Marcar como cancelada
+        // ✅ Marcar como cancelada
         sale.setStatus("CANCELLED");
-        saleService.save(sale);
+        saleService.save(sale); // Guarda el estado, pero no debe afectar stock
 
-        return ResponseEntity.ok("Venta cancelada y stock devuelto");
+        return ResponseEntity.ok("Venta cancelada y stock devuelto correctamente");
     }
 }

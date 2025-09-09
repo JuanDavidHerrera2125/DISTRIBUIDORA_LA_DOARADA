@@ -1,5 +1,6 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +23,7 @@ public class Stock {
 
     // Relación 1:1 con Product
     @OneToOne
+    @JsonManagedReference
     @JoinColumn(name = "product_id", nullable = false, unique = true)
     private Product product;
 

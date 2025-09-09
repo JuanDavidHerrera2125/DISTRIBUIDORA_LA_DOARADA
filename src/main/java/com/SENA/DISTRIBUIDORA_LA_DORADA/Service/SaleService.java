@@ -6,6 +6,7 @@ import com.SENA.DISTRIBUIDORA_LA_DORADA.IService.ISaleService;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,17 +32,7 @@ public class SaleService implements ISaleService {
 
     @Override
     public Sale save(Sale sale) {
-        // Guardar venta
-        Sale savedSale = saleRepository.save(sale);
-
-        // 🔹 Reducir stock por cada producto vendido
-        if (sale.getDetails() != null) {
-            for (SaleDetail detail : sale.getDetails()) {
-                stockService.decreaseStock(detail.getProduct().getId(), detail.getQuantity());
-            }
-        }
-
-        return savedSale;
+        return saleRepository.save(sale); // ✅ Solo guarda, sin tocar stock
     }
 
     @Override
@@ -69,4 +60,22 @@ public class SaleService implements ISaleService {
     public Optional<Sale> findByIdWithDetails(Long id) {
         return saleRepository.findSaleWithDetails(id);
     }
+
+    @Transactional // 👈 Transacción en el servicio (mejor práctica)
+    public void cancelSale(Long id) {
+        Sale sale = findByIdWithDetails(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if ("CANCELLED".equalsIgnoreCase(sale.getStatus())) {
+            throw new RuntimeException("La venta ya fue cancelada anteriormente");
+        }
+
+        for (SaleDetail detail : sale.getDetails()) {
+            stockService.increaseStock(detail.getProduct().getId(), detail.getQuantity());
+        }
+
+        sale.setStatus("CANCELLED");
+        save(sale); // 👈 Guarda la venta actualizada
+    }
+
 }
