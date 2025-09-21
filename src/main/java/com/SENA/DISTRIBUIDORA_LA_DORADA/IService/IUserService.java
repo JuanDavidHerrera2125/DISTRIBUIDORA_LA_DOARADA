@@ -1,5 +1,6 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.IService;
 
+import com.SENA.DISTRIBUIDORA_LA_DORADA.DTO.UserCreateDto;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.User;
 
 import java.util.List;
@@ -19,7 +20,8 @@ public interface IUserService {
 
     Optional<User> findByEmail(String email);
     Optional<User> findByEmailAndPassword(String email, String password);
-
     void sendEmail(String to, String subject, String body);
     String recoverPassword(String email);
+
+    User createUser(UserCreateDto dto);
 }

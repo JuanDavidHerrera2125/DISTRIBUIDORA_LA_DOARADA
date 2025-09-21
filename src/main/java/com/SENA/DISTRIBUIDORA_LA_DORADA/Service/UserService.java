@@ -1,5 +1,6 @@
 package com.SENA.DISTRIBUIDORA_LA_DORADA.Service;
 
+import com.SENA.DISTRIBUIDORA_LA_DORADA.DTO.UserCreateDto;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.User;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.IService.IUserService;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Repository.UserRepository;
@@ -22,7 +23,7 @@ public class UserService implements IUserService {
 
     @Override
     public List<User> getAll() {
-        return List.of();
+        return userRepository.findAll();
     }
 
     @Override
@@ -37,15 +38,17 @@ public class UserService implements IUserService {
 
     @Override
     public User update(Long id, User user) {
-        return userRepository.findById(id)
-                .map(existingUser -> {
-                    existingUser.setUserName(user.getUserName());
-                    existingUser.setEmail(user.getEmail());
-                    existingUser.setPassword(user.getPassword());
-                    existingUser.setUserRole(user.getUserRole());
-                    return userRepository.save(existingUser);
-                })
-                .orElseThrow(() -> new RuntimeException("User not found with id " + id));
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isPresent()) {
+            User existingUser = optionalUser.get();
+            existingUser.setUserName(user.getUserName());
+            existingUser.setEmail(user.getEmail());
+            existingUser.setPassword(user.getPassword());
+            existingUser.setUserRole(user.getUserRole());
+            return userRepository.save(existingUser);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -55,26 +58,44 @@ public class UserService implements IUserService {
 
     @Override
     public User login(String email, String password) {
-        return null;
+        Optional<User> optionalUser = userRepository.findByEmailAndPassword(email, password);
+        return optionalUser.orElse(null);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return Optional.empty();
+        return userRepository.findByEmail(email);
     }
 
     @Override
     public Optional<User> findByEmailAndPassword(String email, String password) {
-        return Optional.empty();
+        return userRepository.findByEmailAndPassword(email, password);
     }
 
     @Override
     public void sendEmail(String to, String subject, String body) {
-
+        System.out.println("Email enviado a " + to + " con asunto: " + subject);
     }
 
     @Override
     public String recoverPassword(String email) {
-        return "";
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            sendEmail(user.getEmail(), "Recuperación de contraseña", "Tu contraseña es: " + user.getPassword());
+            return "Correo enviado";
+        } else {
+            return "Usuario no encontrado";
+        }
+    }
+
+    @Override
+    public User createUser(UserCreateDto dto) {
+        User user = new User();
+        user.setUserName(dto.getUserName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setUserRole(dto.getUserRole());
+        return userRepository.save(user);
     }
 }
