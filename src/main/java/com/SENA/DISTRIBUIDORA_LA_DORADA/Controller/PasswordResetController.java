@@ -77,7 +77,7 @@ public class PasswordResetController {
 
         User user = userOpt.get();
         user.setPassword(newPassword); // Recuerda: aquí podrías encriptar si decides agregar eso después
-        userService.update(user.getId(), user);
+        userService.updatePassword(user.getId(), newPassword);
 
         tokenService.invalidateToken(resetToken.getEmail());
 
