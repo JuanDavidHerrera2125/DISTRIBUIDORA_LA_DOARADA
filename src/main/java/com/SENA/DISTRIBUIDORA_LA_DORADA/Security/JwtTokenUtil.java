@@ -17,13 +17,15 @@ public class JwtTokenUtil {
     @Value("${jwt.secret:mySecretKey}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}") // 24 horas en milisegundos
+    @Value("${jwt.expiration:86400000}")
     private Long expiration;
 
+    // 🔹 Llave secreta
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
+    // 🔹 Generar token
     public String generateToken(String subject) {
         return Jwts.builder()
                 .setSubject(subject)
@@ -33,20 +35,36 @@ public class JwtTokenUtil {
                 .compact();
     }
 
-    // Opcional: si necesitas validar o extraer claims
+    // 🔹 Obtener todos los claims
     public Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-
+    // 🔹 Obtener email/usuario del token
     public String getUsernameFromToken(String token) {
         return getAllClaimsFromToken(token).getSubject();
     }
 
+    // 🔹 Verificar si el token expiró
     public boolean isTokenExpired(String token) {
         return getAllClaimsFromToken(token).getExpiration().before(new Date());
+    }
+
+    // Valida un token de forma general: no expirado y formato correcto
+    public boolean validateToken(String token) {
+        try {
+            return !isTokenExpired(token) && getUsernameFromToken(token) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // 🔹 Obtener email del token (nuevo para /auth/validate)
+    public String getEmailFromToken(String token) {
+        return getUsernameFromToken(token);
     }
 }

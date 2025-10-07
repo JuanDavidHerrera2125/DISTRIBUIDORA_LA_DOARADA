@@ -4,11 +4,11 @@ import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.LoginRequest;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.RecoverRequest;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Entity.User;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.IService.IUserService;
+import com.SENA.DISTRIBUIDORA_LA_DORADA.Security.JwtAuthenticationFilter;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Security.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +28,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // ✅ LOGIN — con bcrypt
     @PostMapping("/login")
@@ -60,6 +63,45 @@ public class AuthController {
         ));
     }
 
+    // ✅ VALIDAR TOKEN — agregado sin tocar lo demás
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestHeader(name = "Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Token no proporcionado"));
+        }
+
+        String token = authHeader.substring(7);
+
+        // 🔹 verificar si el token está en lista negra
+        if (jwtAuthenticationFilter.isTokenInvalid(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Token inválido o expirado"));
+        }
+
+        // 🔹 verificar validez general
+        if (!jwtTokenUtil.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Token inválido o expirado"));
+        }
+
+        // 🔹 obtener email del token
+        String email = jwtTokenUtil.getEmailFromToken(token);
+        Optional<User> userOpt = userService.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Usuario no encontrado"));
+        }
+
+        User user = userOpt.get();
+
+        return ResponseEntity.ok(Map.of(
+                "valid", true,
+                "user", Map.of(
+                        "id", user.getId(),
+                        "email", user.getEmail(),
+                        "role", user.getUserRole().name()
+                )
+        ));
+    }
+
     // ✅ RECUPERAR CONTRASEÑA
     @PostMapping("/recover")
     public ResponseEntity<String> recoverPassword(@RequestBody RecoverRequest request) {
@@ -80,4 +122,17 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error enviando correo");
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader(name = "Authorization", required = false) String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            // Agregamos el token al blacklist
+            jwtAuthenticationFilter.invalidateToken(token);
+            return ResponseEntity.ok(Map.of("message", "Sesión cerrada correctamente"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se proporcionó token válido"));
+        }
+    }
+
 }
