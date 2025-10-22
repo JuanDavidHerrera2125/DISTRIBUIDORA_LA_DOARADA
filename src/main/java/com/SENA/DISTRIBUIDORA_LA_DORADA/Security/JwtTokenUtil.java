@@ -22,6 +22,8 @@ public class JwtTokenUtil {
 
     // 🔹 Llave secreta
     private Key getSigningKey() {
+        System.out.println("🔍 Secret key length: " + secret.length()); // ✅ Para debug
+        System.out.println("🔍 Using secret: " + (secret.equals("mySecretKey") ? "DEFAULT" : "CUSTOM")); // ✅ Para debug
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
@@ -57,8 +59,11 @@ public class JwtTokenUtil {
     // Valida un token de forma general: no expirado y formato correcto
     public boolean validateToken(String token) {
         try {
-            return !isTokenExpired(token) && getUsernameFromToken(token) != null;
+            boolean valid = !isTokenExpired(token) && getUsernameFromToken(token) != null;
+            System.out.println("🔍 Token validation result: " + valid); // ✅ Para debug
+            return valid;
         } catch (Exception e) {
+            System.out.println("🔍 Token validation error: " + e.getMessage()); // ✅ Para debug
             return false;
         }
     }
