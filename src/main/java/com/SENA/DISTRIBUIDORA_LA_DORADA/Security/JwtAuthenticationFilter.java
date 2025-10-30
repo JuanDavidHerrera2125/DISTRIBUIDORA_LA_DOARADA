@@ -74,8 +74,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     User usuario = userService.findByEmail(email).orElse(null);
 
                     if (usuario != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        // ✅ Cargar roles del usuario
-                        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(usuario.getUserRole().name());
+                        // ✅ Cargar roles del usuario con prefijo ROLE_ (importante para Spring Security)
+                        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(
+                                "ROLE_" + usuario.getUserRole().name()
+                        );
 
                         // ✅ ESTABLECER LA AUTENTICACIÓN EN EL CONTEXTO DE SEGURIDAD
                         UsernamePasswordAuthenticationToken authToken =

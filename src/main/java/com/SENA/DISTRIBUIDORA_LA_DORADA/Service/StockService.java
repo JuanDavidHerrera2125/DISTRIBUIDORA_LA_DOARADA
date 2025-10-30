@@ -22,7 +22,6 @@ public class StockService implements IStockService {
     @Autowired
     private ProductRepository productRepository;
 
-
     @Override
     public List<Stock> findAll() {
         return stockRepository.findAll();
@@ -64,18 +63,17 @@ public class StockService implements IStockService {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new NoSuchElementException("Producto no encontrado con ID: " + dto.getProductId()));
 
-        Optional<Stock> stockOpt = stockRepository.findByProduct_Id(product.getId());
-
-        if (stockOpt.isPresent()) {
-            Stock existingStock = stockOpt.get();
-            existingStock.setCurrentStock(dto.getCurrentStock());
-            return stockRepository.save(existingStock);
-        } else {
-            Stock newStock = new Stock();
-            newStock.setProduct(product);
-            newStock.setCurrentStock(dto.getCurrentStock());
-            return stockRepository.save(newStock);
-        }
+        return stockRepository.findByProduct_Id(product.getId())
+                .map(existingStock -> {
+                    existingStock.setCurrentStock(dto.getCurrentStock());
+                    return stockRepository.save(existingStock);
+                })
+                .orElseGet(() -> {
+                    Stock newStock = new Stock();
+                    newStock.setProduct(product);
+                    newStock.setCurrentStock(dto.getCurrentStock());
+                    return stockRepository.save(newStock);
+                });
     }
 
     @Override
@@ -105,7 +103,6 @@ public class StockService implements IStockService {
         }
 
         map.values().forEach(dto -> dto.setCurrentStock(dto.getTotalStock()));
-
         return new ArrayList<>(map.values());
     }
 
@@ -140,7 +137,6 @@ public class StockService implements IStockService {
                 );
     }
 
-
     @Transactional
     @Override
     public void decreaseStock(Long productId, int quantity) {
@@ -160,13 +156,11 @@ public class StockService implements IStockService {
         stockRepository.save(stock);
     }
 
-    // StockService.java
     public void increaseStock(Long productId, Integer quantity) {
         Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Stock no encontrado para el producto: " + productId));
 
         stock.setCurrentStock(stock.getCurrentStock() + quantity);
-        stockRepository.save(stock); // ✅ Guarda el stock actualizado
+        stockRepository.save(stock);
     }
-
 }

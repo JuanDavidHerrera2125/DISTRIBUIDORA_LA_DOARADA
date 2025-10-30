@@ -23,10 +23,7 @@ public class ProductService implements IProductService {
     private StockRepository stockRepository;
 
     @Autowired
-    private StockService stockService; // ✅ Inyectado aquí
-
-    // ❌ Elimina el constructor
-    // public ProductService(StockService stockService) { ... }
+    private StockService stockService;
 
     @Override
     public List<Product> getAllProduct() {
