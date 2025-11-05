@@ -20,24 +20,33 @@ public class JwtTokenUtil {
     @Value("${jwt.expiration:86400000}")
     private Long expiration;
 
-    // 🔹 Llave secreta
+    // 🔐 Genera la clave de firma desde el secreto (debe ser Base64 y ≥ 256 bits)
     private Key getSigningKey() {
-        System.out.println("🔍 Secret key length: " + secret.length()); // ✅ Para debug
-        System.out.println("🔍 Using secret: " + (secret.equals("mySecretKey") ? "DEFAULT" : "CUSTOM")); // ✅ Para debug
+        // Si usas "mySecretKey" como valor por defecto, NO es Base64 válido → lo corregimos
+        if ("mySecretKey".equals(secret)) {
+            // Usamos una clave segura por defecto en Base64 (256 bits = 32 bytes → 44 chars en Base64)
+            secret = "bXlTZWNyZXRLZXlmb3JEaXN0cmlidXRvcmExMjM0NTY3ODk="; // "mySecretKeyforDistributo..." en Base64
+        }
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    // 🔹 Generar token
+    // 🎫 Generar token SOLO con subject (para compatibilidad)
     public String generateToken(String subject) {
+        return generateToken(subject, "USER"); // Rol por defecto
+    }
+
+    // 🎫 Generar token con subject Y rol (¡este es el que usarás en login!)
+    public String generateToken(String subject, String role) {
         return Jwts.builder()
                 .setSubject(subject)
+                .claim("role", role) // 👈 Incluye el rol en el token
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    // 🔹 Obtener todos los claims
+    // 🔍 Obtener todos los claims del token
     public Claims getAllClaimsFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -46,30 +55,34 @@ public class JwtTokenUtil {
                 .getBody();
     }
 
-    // 🔹 Obtener email/usuario del token
+    // 👤 Obtener email/username del token
     public String getUsernameFromToken(String token) {
         return getAllClaimsFromToken(token).getSubject();
     }
 
-    // 🔹 Verificar si el token expiró
+    // 👤 Alias para claridad
+    public String getEmailFromToken(String token) {
+        return getUsernameFromToken(token);
+    }
+
+    // 🎖️ Obtener rol del token
+    public String getRoleFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        return (String) claims.get("role"); // Retorna "ADMIN", "USER", etc.
+    }
+
+    // ⏳ Verificar si el token está expirado
     public boolean isTokenExpired(String token) {
         return getAllClaimsFromToken(token).getExpiration().before(new Date());
     }
 
-    // Valida un token de forma general: no expirado y formato correcto
+    // ✅ Validar token (no expirado y con subject)
     public boolean validateToken(String token) {
         try {
-            boolean valid = !isTokenExpired(token) && getUsernameFromToken(token) != null;
-            System.out.println("🔍 Token validation result: " + valid); // ✅ Para debug
-            return valid;
+            String subject = getUsernameFromToken(token);
+            return subject != null && !isTokenExpired(token);
         } catch (Exception e) {
-            System.out.println("🔍 Token validation error: " + e.getMessage()); // ✅ Para debug
             return false;
         }
-    }
-
-    // 🔹 Obtener email del token (nuevo para /auth/validate)
-    public String getEmailFromToken(String token) {
-        return getUsernameFromToken(token);
     }
 }
