@@ -10,17 +10,17 @@ public interface IProductService {
 
     List<Product> findAll();
 
-    Optional<Product> findById (Long id);
+    Optional<Product> findById(Long id);
 
-    Stock getStockByProductId(Long productId);
+    Optional<Stock> getStockByProductId(Long productId);
 
-    Stock findByProductId(Long productId);
+    Optional<Stock> findByProductId(Long productId);
 
     List<Product> getAllProduct();
 
-    Product save (Product product);
+    Product save(Product product);
 
-    void delete (Long id);
+    void delete(Long id);
 
     Product updateProduct(Long id, Product product);
 

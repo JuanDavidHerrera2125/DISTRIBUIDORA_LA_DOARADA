@@ -36,4 +36,6 @@ public interface IStockService {
 
     @Transactional
     void decreaseStock(Long productId, int quantity);
+
+    int findTotalStockByProductId(Long productId);
 }
