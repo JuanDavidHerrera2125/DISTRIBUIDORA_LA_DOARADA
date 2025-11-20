@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,6 +79,20 @@ public class SaleService implements ISaleService {
 
         sale.setStatus("CANCELLED");
         save(sale); // 👈 Guarda la venta actualizada
+    }
+
+    // 🔹 Método para buscar ventas por fecha
+    public List<Sale> findByDate(LocalDate date) {
+        // ✅ Usa java.util.Date, no java.sql.Date
+        java.util.Date utilDate = java.sql.Date.valueOf(date); // o:
+        // java.util.Date utilDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return saleRepository.findByDate(utilDate);
+    }
+
+    public Double findTodayIncome(LocalDate date) {
+        java.util.Date utilDate = java.sql.Date.valueOf(date);
+        Double total = saleRepository.sumTotalByDate(utilDate);
+        return total != null ? total : 0.0;
     }
 
 }

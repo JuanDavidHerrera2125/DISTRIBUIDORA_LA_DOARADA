@@ -27,4 +27,8 @@ public interface IProductService {
     Optional<Product> findByNameAndUnitPrice(String name, Double unitPrice);
 
     Optional<Product> findByNameAndModel(String name, String model);
+
+    long countActiveProducts();
+
+    long countStockAvailable();
 }

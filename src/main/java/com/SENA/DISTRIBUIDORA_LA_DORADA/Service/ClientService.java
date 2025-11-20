@@ -78,4 +78,8 @@ public class ClientService implements IClientService {
         return clientRepository.save(newClient);
     }
 
+    public long countAllClients() {
+        return clientRepository.count();
+    }
+
 }

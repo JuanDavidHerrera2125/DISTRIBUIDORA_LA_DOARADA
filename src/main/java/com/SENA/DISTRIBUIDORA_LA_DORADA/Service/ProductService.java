@@ -117,6 +117,16 @@ public class ProductService implements IProductService {
         return productRepository.findByNameAndModel(name, model);
     }
 
+    @Override
+    public long countActiveProducts() {
+        return productRepository.countByActiveTrue();
+    }
+
+    @Override
+    public long countStockAvailable() {
+        return productRepository.countStockAvailable();
+    }
+
     @Transactional
     public void saveOrUpdateStock(Product product, int stockToAdd) {
         stockRepository.findByProduct_Id(product.getId())
@@ -143,4 +153,5 @@ public class ProductService implements IProductService {
         stock.setCurrentStock(stock.getCurrentStock() - quantity);
         stockRepository.save(stock);
     }
+
 }

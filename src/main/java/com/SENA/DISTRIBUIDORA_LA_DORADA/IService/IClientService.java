@@ -23,4 +23,5 @@ public interface IClientService {
 
     Client findByPhoneOrSave(String phone, SaleRequestDto request);
 
+    long countAllClients();
 }

@@ -13,12 +13,14 @@ import com.SENA.DISTRIBUIDORA_LA_DORADA.Service.StockService;
 import com.SENA.DISTRIBUIDORA_LA_DORADA.Converter.SaleDtoConverter;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -192,5 +194,59 @@ public class SaleController {
         saleService.save(sale); // Guarda el estado, pero no debe afectar stock
 
         return ResponseEntity.ok("Venta cancelada y stock devuelto correctamente");
+    }
+
+    // NUEVAS PETICIONES DETALLADAS
+
+    // 🔹 Endpoint para obtener las ventas de hoy
+    @GetMapping("/today-sales")
+    public ResponseEntity<Long> getTodaySalesCount(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date) {
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        List<Sale> sales = saleService.findByDate(targetDate);
+        return ResponseEntity.ok((long) sales.size());
+    }
+
+    // 🔹 Endpoint para obtener los ingresos de hoy
+    @GetMapping("/today-income")
+    public ResponseEntity<Double> getTodayIncome(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date) {
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        Double income = saleService.findTodayIncome(targetDate);
+        return ResponseEntity.ok(income != null ? income : 0.0);
+    }
+
+    // 🔹 Endpoint para obtener el número de clientes registrados
+    @GetMapping("/clients-count")
+    public ResponseEntity<Long> getClientsCount() {
+        long count = clientService.countAllClients();
+        return ResponseEntity.ok(count);
+    }
+
+    // 🔹 Endpoint para obtener el número de productos activos
+    @GetMapping("/products-count")
+    public ResponseEntity<Long> getActiveProductsCount() {
+        long count = productService.countActiveProducts();
+        return ResponseEntity.ok(count);
+    }
+
+    // 🔹 Endpoint para obtener información rápida
+    @GetMapping("/quick-info")
+    public ResponseEntity<Map<String, Object>> getQuickInfo() {
+        LocalDate today = LocalDate.now();
+
+        Map<String, Object> info = new HashMap<>();
+        info.put("stockDisponible", productService.countStockAvailable());
+        info.put("productosActivos", productService.countActiveProducts());
+        info.put("clientesRegistrados", clientService.countAllClients());
+        info.put("ventasDelDia", (long) saleService.findByDate(today).size());
+        info.put("ingresosDelDia", saleService.findTodayIncome(today) != null ?
+                saleService.findTodayIncome(today) : 0.0);
+
+        return ResponseEntity.ok(info);
     }
 }

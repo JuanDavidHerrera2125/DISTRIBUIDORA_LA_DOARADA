@@ -37,6 +37,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**", "/api/auth/**").permitAll() // ✅ Permite ambas rutas
+                        .requestMatchers("/api/sales/**").hasAnyRole("ADMIN", "SELLER") // ✅ Permite solo ADMIN y SELLER
+                        .requestMatchers("/api/clients/**").hasAnyRole("ADMIN", "SELLER") // ✅ Permite solo ADMIN y SELLER
                         .anyRequest().authenticated() // ✅ Todas las demás rutas requieren autenticación
                 )
                 .sessionManagement(session -> session
