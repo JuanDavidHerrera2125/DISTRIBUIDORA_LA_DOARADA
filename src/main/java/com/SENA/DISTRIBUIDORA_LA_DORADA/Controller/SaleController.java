@@ -59,7 +59,8 @@ public class SaleController {
 
     @GetMapping("{id}")
     public ResponseEntity<SaleResponseDto> findById(@PathVariable Long id) {
-        Optional<Sale> optionalSale = service.findById(id);
+        // ✅ Usa el método que SÍ carga los detalles y productos
+        Optional<Sale> optionalSale = saleService.findByIdWithDetails(id);
         if (optionalSale.isPresent()) {
             SaleResponseDto dto = convertToResponseDto(optionalSale.get());
             return ResponseEntity.ok(dto);

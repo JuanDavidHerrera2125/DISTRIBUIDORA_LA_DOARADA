@@ -12,7 +12,10 @@ import java.util.Optional;
 public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     // 🔹 JPQL para traer Sale con sus detalles y evitar error "No property 'withDetails'"
-    @Query("SELECT s FROM Sale s LEFT JOIN FETCH s.details WHERE s.id = :id")
+    @Query("SELECT s FROM Sale s " +
+            "LEFT JOIN FETCH s.details d " +
+            "LEFT JOIN FETCH d.product " +
+            "WHERE s.id = :id")
     Optional<Sale> findSaleWithDetails(@Param("id") Long id);
 
 
